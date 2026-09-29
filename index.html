@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bell Shop - เติมเกม</title>
+    <style>
+        * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
+        body {background:#f5f7fa; padding-bottom:80px;}
+        
+        /* ส่วนหัว */
+        .top-bar {
+            background:#fff; padding:15px 20px;
+            display:flex; justify-content:space-between; align-items:center;
+            box-shadow:0 2px 5px rgba(0,0,0,0.05);
+        }
+        .logo {font-size:20px; font-weight:bold; color:#0066cc;}
+        .user-info {font-size:14px; color:#555;}
+
+        /* กล่องแพ็กเกจ */
+        .container {padding:20px;}
+        .grid {display:grid; grid-template-columns:1fr 1fr; gap:15px;}
+        .card {
+            background:#fff; border-radius:12px; padding:20px 15px;
+            cursor:pointer; transition:0.25s;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);
+        }
+        .card:hover {transform:translateY(-2px); border:1px solid #0066cc;}
+        .name {font-size:16px; font-weight:600; margin-bottom:8px;}
+        .price {font-size:15px; color:#0066cc; font-weight:bold;}
+
+        /* เมนูล่าง */
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0;
+            background:#0f1a2b; display:flex; justify-content:space-around; padding:10px 0;
+        }
+        .nav-item {color:#99a; text-align:center; font-size:11px;}
+        .nav-item.active {color:#fff;}
+        .plus-btn {
+            width:50px; height:50px; background:#0099ff; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:24px; margin-top:-20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- แถบบน -->
+<div class="top-bar">
+    <div class="logo">Bell Shop</div>
+    <div class="user-info" id="userBar">
+        <a href="login.html" style="color:#0066cc; text-decoration:none;">เข้าสู่ระบบ</a>
+    </div>
+</div>
+
+<!-- รายการสินค้า -->
+<div class="container">
+    <h3 style="margin-bottom:15px;">💎 เลือกจำนวนเพชร</h3>
+    <div class="grid" id="packList">
+        <!-- แพ็กเกจจะโหลดตรงนี้ -->
+    </div>
+</div>
+
+<!-- เมนูล่าง -->
+<div class="bottom-nav">
+    <div class="nav-item active">🏠<br>หน้าหลัก</div>
+    <div class="nav-item" onclick="location.href='topup.html'">💳<br>เติมเงิน</div>
+    <div class="nav-item"><div class="plus-btn">+</div></div>
+    <div class="nav-item">🎮<br>ประวัติ</div>
+    <div class="nav-item">💬<br>ติดต่อ</div>
+</div>
+
+<script>
+// ข้อมูลแพ็กเกจ
+const packs = [
+    {name:'Diamond × 33', price:9.50},
+    {name:'Diamond × 68', price:19.50},
+    {name:'Diamond × 172', price:47.35},
+    {name:'Diamond × 310', price:85.23},
+    {name:'Diamond × 517', price:142.05},
+    {name:'Diamond × 690', price:189.40},
+    {name:'Diamond × 1,052', price:284.10},
+    {name:'Diamond × 1,801', price:473.50},
+    {name:'Diamond × 3,698', price:947.00},
+    {name:'แพ็คสัปดาห์', price:65.00},
+    {name:'แพ็คเดือน', price:285.00},
+    {name:'BP Card', price:85.50}
+];
+
+// แสดงแพ็กเกจ
+const list = document.getElementById('packList');
+packs.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="name">${p.name}</div>
+        <div class="price">฿${p.price.toFixed(2)}</div>
+    `;
+    card.onclick = () => buyPack(p);
+    list.appendChild(card);
+});
+
+// กดซื้อ
+function buyPack(pack) {
+    const user = localStorage.getItem('bellUser');
+    if (!user) return alert('กรุณาเข้าสู่ระบบก่อน!') + location.href='login.html';
+    
+    const balance = parseFloat(localStorage.getItem('bellBalance') || 0);
+    if (balance < pack.price) {
+        return alert(`ยอดเคดิตไม่พบ!\nมี: ฿${balance.toFixed(2)}\nต้องการ: ฿${pack.price.toFixed(2)}\nกรุณาเติมเงินก่อน`);
+    }
+
+    // หักเงิน
+    localStorage.setItem('bellBalance', (balance - pack.price).toFixed(2));
+    
+    // บันทึกประวัติ
+    const history = JSON.parse(localStorage.getItem('bellHistory') || '[]');
+    history.unshift({
+        name: pack.name,
+        price: pack.price,
+        time: new Date().toLocaleString('th-TH')
+    });
+    localStorage.setItem('bellHistory', JSON.stringify(history));
+
+    alert(`✅ สำเร็จ!\nสั่งซื้อ: ${pack.name}\nหักเงิน: ฿${pack.price.toFixed(2)}\nเหลือ: ฿${(balance - pack.price).toFixed(2)}`);
+    updateUserBar();
+}
+
+// อัพเดทชื่อผู้ใช้
+function updateUserBar() {
+    const user = localStorage.getItem('bellUser');
+    const balance = localStorage.getItem('bellBalance');
+    if (user) {
+        document.getElementById('userBar').innerHTML = `
+            ${user} | ฿${balance}
+            <button onclick="logout()" style="margin-left:8px; padding:4px 8px; border:none; background:#eee; border-radius:4px;">ออก</button>
+        `;
+    }
+}
+function logout() {
+    localStorage.removeItem('bellUser');
+    localStorage.removeItem('bellBalance');
+    location.reload();
+}
+updateUserBar();
+</script>
+
+</body>
+</html>

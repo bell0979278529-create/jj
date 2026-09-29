@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เติมเงิน - Bell Shop</title>
+    <style>
+        * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
+        body {background:#f5f7fa; padding:40px 20px; padding-bottom:80px;}
+        .box {background:#fff; border-radius:12px; padding:25px; max-width:400px; margin:0 auto;}
+        h2 {text-align:center; margin-bottom:20px; color:#0066cc;}
+        .balance {text-align:center; font-size:22px; font-weight:bold; margin-bottom:20px; color:#222;}
+        input {width:100%; padding:12px; margin:8px 0 15px; border:1px solid #ddd; border-radius:8px; font-size:16px;}
+        button {width:100%; padding:12px; background:#0066cc; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;}
+        .back {display:block; text-align:center; margin-top:15px; color:#0066cc; text-decoration:none;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>💳 เติมเงินเข้าบัญชี</h2>
+    <div class="balance">ยอดคงเหลือ: ฿<span id="bal">0.00</span></div>
+    <input type="number" id="amount" placeholder="กรอกจำนวนเงิน เช่น 100" min="1">
+    <button onclick="addMoney()">เติมเข้าบัญชี</button>
+    <a href="index.html" class="back">← กลับหน้าหลัก</a>
+</div>
+
+<script>
+function updateBal() {
+    document.getElementById('bal').textContent = localStorage.getItem('bellBalance') || '0.00';
+}
+function addMoney() {
+    const user = localStorage.getItem('bellUser');
+    if (!user) return alert('กรุณาเข้าสู่ระบบก่อน!') + location.href='login.html';
+    
+    const amt = parseFloat(document.getElementById('amount').value);
+    if (!amt || amt <= 0) return alert('กรอกจำนวนเงินให้ถูกต้อง!');
+    
+    const now = parseFloat(localStorage.getItem('bellBalance') || 0);
+    localStorage.setItem('bellBalance', (now + amt).toFixed(2));
+    alert(`✅ เติมเงินสำเร็จ!\n+฿${amt.toFixed(2)}\nยอดใหม่: ฿${(now + amt).toFixed(2)}`);
+    document.getElementById('amount').value = '';
+    updateBal();
+}
+updateBal();
+</script>
+</body>
+</html>
